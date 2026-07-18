@@ -60,7 +60,13 @@ export function VoiceFeed({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
   }, [refreshTrigger])
 
   useEffect(() => {
-    const supabase = getBrowserSupabase()
+    let supabase: ReturnType<typeof getBrowserSupabase> | null = null
+    try {
+      supabase = getBrowserSupabase()
+    } catch {
+      return
+    }
+
     const channel = supabase
       .channel("voice-notes")
       .on(

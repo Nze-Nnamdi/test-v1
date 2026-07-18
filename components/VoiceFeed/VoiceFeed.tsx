@@ -64,6 +64,10 @@ export function VoiceFeed({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
     fetchVoices()
   }, [refreshTrigger])
 
+  const handleDelete = (id: string) => {
+    setNotes((prev) => prev.filter((n) => n.id !== id))
+  }
+
   useEffect(() => {
     const interval = setInterval(() => {
       fetchVoices(undefined, true)
@@ -120,7 +124,7 @@ export function VoiceFeed({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
     <div className="space-y-4">
       <div className="space-y-3">
         {notes.map((note) => (
-          <VoiceFeedItem key={note.id} note={note} />
+          <VoiceFeedItem key={note.id} note={note} onDelete={handleDelete} />
         ))}
       </div>
 

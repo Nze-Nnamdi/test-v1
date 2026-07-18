@@ -145,6 +145,14 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   const corsHeaders = getCorsHeaders(request)
 
+  const adminSecret = request.headers.get("x-admin-secret")
+  if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401, headers: corsHeaders as Record<string, string> }
+    )
+  }
+
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get("id")

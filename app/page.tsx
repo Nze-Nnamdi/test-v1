@@ -24,7 +24,7 @@ export default function Home() {
         
         <section aria-label="Public Voice Feed">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Voices</h2>
-          <VoiceFeed key={feedKey} />
+          <VoiceFeed refreshTrigger={feedKey} />
         </section>
       </main>
       <Footer />

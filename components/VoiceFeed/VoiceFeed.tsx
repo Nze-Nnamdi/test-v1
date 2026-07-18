@@ -10,7 +10,7 @@ interface VoiceNote {
   createdAt: string
 }
 
-export function VoiceFeed() {
+export function VoiceFeed({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
   const [notes, setNotes] = useState<VoiceNote[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -56,7 +56,7 @@ export function VoiceFeed() {
 
   useEffect(() => {
     fetchVoices()
-  }, [])
+  }, [refreshTrigger])
 
   if (loading) {
     return (

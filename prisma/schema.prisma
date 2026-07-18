@@ -1,0 +1,18 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model VoiceNote {
+  id        String   @id @default(uuid())
+  audioUrl  String
+  format    String
+  duration  Int
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

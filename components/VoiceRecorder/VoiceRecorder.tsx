@@ -26,6 +26,13 @@ export function VoiceRecorder({ onRecordComplete }: VoiceRecorderProps) {
     }
   }, [])
 
+  useEffect(() => {
+    if (state === "success") {
+      const timer = setTimeout(resetRecording, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [state])
+
   const cleanup = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current)

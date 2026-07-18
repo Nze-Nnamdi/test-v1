@@ -1,7 +1,8 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { VoiceFeedItem } from "./VoiceFeedItem"
+import { getBrowserSupabase } from "@/lib/supabase"
 
 interface VoiceNote {
   id: string
@@ -57,6 +58,24 @@ export function VoiceFeed({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
   useEffect(() => {
     fetchVoices()
   }, [refreshTrigger])
+
+  useEffect(() => {
+    const supabase = getBrowserSupabase()
+    const channel = supabase
+      .channel("voice-notes")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "VoiceNote" },
+        (payload) => {
+          const newNote = payload.new as VoiceNote
+          setNotes((prev) => [newNote, ...prev])
+          setLoading(false)
+        }
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   if (loading) {
     return (

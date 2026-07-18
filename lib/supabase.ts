@@ -24,3 +24,19 @@ export async function getSupabase(): Promise<SupabaseClient> {
 
   return supabaseInstance
 }
+
+let browserSupabase: SupabaseClient | null = null
+
+export function getBrowserSupabase(): SupabaseClient {
+  if (browserSupabase) return browserSupabase
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY")
+  }
+
+  browserSupabase = createClient(supabaseUrl, supabaseAnonKey)
+  return browserSupabase
+}

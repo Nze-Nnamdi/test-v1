@@ -16,6 +16,8 @@ export default function AdminPage() {
   const [notes, setNotes] = useState<VoiceNote[]>([])
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [loginError, setLoginError] = useState<string | null>(null)
 
   useEffect(() => {
     const stored = sessionStorage.getItem("admin_auth")
@@ -43,13 +45,17 @@ export default function AdminPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!password) {
+      setLoginError("Enter the admin password")
+      return
+    }
     sessionStorage.setItem("admin_auth", password)
     setAuthenticated(true)
-    fetchNotes(password)
+    fetchNotes()
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this voice note?")) return
+    setDeleteError(null)
     setDeleting(id)
     try {
       const secret = sessionStorage.getItem("admin_auth")
@@ -63,8 +69,7 @@ export default function AdminPage() {
       }
       setNotes((prev) => prev.filter((n) => n.id !== id))
     } catch (err) {
-      console.error(err)
-      alert("Delete failed")
+      setDeleteError(err instanceof Error ? err.message : "Delete failed")
     } finally {
       setDeleting(null)
     }
@@ -75,10 +80,13 @@ export default function AdminPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <form onSubmit={handleLogin} className="bg-white p-8 rounded-lg border border-gray-200 shadow-sm w-full max-w-sm">
           <h1 className="text-xl font-bold text-gray-900 mb-6">Admin Login</h1>
+          {loginError && (
+            <p className="text-sm text-red-600 mb-4">{loginError}</p>
+          )}
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => { setPassword(e.target.value); setLoginError(null) }}
             placeholder="Enter admin password"
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
             autoFocus
@@ -107,6 +115,10 @@ export default function AdminPage() {
             Logout
           </button>
         </div>
+
+        {deleteError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600 font-medium">{deleteError}</div>
+        )}
 
         {loading ? (
           <div className="space-y-3">

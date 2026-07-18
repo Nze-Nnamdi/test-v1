@@ -37,12 +37,12 @@ Never use `@ts-ignore` or `@ts-expect-error` unless absolutely necessary and com
 
 ### Folders
 
-* Use `kebab-case` for all folders
+* Use `kebab-case` for all folders                         
 * Example: `voice-recorder/`, `api-utils/`
 
 ### Files
 
-* Components: `PascalCase.tsx` — `VoiceRecorder.tsx`
+* Components: `PascalCase.tsx` — `VoiceRecorder.tsx`    
 * Hooks: `useCamelCase.ts` — `useRecording.ts`
 * Utilities: `camelCase.ts` — `formatDuration.ts`
 * API routes: `route.ts` (Next.js convention)

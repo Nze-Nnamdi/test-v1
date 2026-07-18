@@ -16,6 +16,17 @@ function getPool() {
   return pool
 }
 
+function mapNote(row: any) {
+  if (!row) return null
+  return {
+    id: row.id,
+    audioUrl: row.audiourl ?? row.audioUrl,
+    format: row.format,
+    duration: row.duration,
+    createdAt: row.createdat ?? row.createdAt,
+  }
+}
+
 export async function getPrisma() {
   if (prismaInstance) return prismaInstance
 
@@ -27,7 +38,7 @@ export async function getPrisma() {
           `INSERT INTO "VoiceNote" ("audioUrl", format, duration) VALUES ($1, $2, $3) RETURNING *`,
           [data.audioUrl, data.format, data.duration]
         )
-        return result.rows[0]
+        return mapNote(result.rows[0])
       },
       async findUnique({ where }: { where: { id: string } }) {
         const p = getPool()
@@ -35,7 +46,7 @@ export async function getPrisma() {
           `SELECT * FROM "VoiceNote" WHERE id = $1`,
           [where.id]
         )
-        return result.rows[0] || null
+        return mapNote(result.rows[0] || null)
       },
       async delete({ where }: { where: { id: string } }) {
         const p = getPool()
@@ -43,7 +54,7 @@ export async function getPrisma() {
           `DELETE FROM "VoiceNote" WHERE id = $1 RETURNING *`,
           [where.id]
         )
-        return result.rows[0]
+        return mapNote(result.rows[0])
       },
       async findMany({
         take,
@@ -60,20 +71,21 @@ export async function getPrisma() {
         const orderCol = Object.keys(orderBy || { createdAt: "desc" })[0] || "createdAt"
         const orderDir = (orderBy as any)?.[orderCol] || "desc"
 
+        let result
         if (cursor?.createdAt) {
           const operator = orderDir === "desc" ? "<=" : ">="
-          const result = await p.query(
+          result = await p.query(
             `SELECT * FROM "VoiceNote" WHERE "${orderCol}" ${operator} $1 ORDER BY "${orderCol}" ${orderDir} LIMIT $2 OFFSET ${skip || 0}`,
             [cursor.createdAt.toISOString(), take]
           )
-          return result.rows
+        } else {
+          result = await p.query(
+            `SELECT * FROM "VoiceNote" ORDER BY "${orderCol}" ${orderDir} LIMIT $1`,
+            [take]
+          )
         }
 
-        const result = await p.query(
-          `SELECT * FROM "VoiceNote" ORDER BY "${orderCol}" ${orderDir} LIMIT $1`,
-          [take]
-        )
-        return result.rows
+        return result.rows.map(mapNote)
       },
     },
   }

@@ -175,7 +175,7 @@ export async function DELETE(request: Request) {
     }
 
     const supabase = await getSupabase()
-    const publicUrl = note.audiourl || note.audioUrl
+    const publicUrl = note.audioUrl
     const publicPrefix = `${supabase.storage.from("voices").getPublicUrl("").data.publicUrl}`
     const filePath = publicUrl.startsWith(publicPrefix)
       ? publicUrl.slice(publicPrefix.length)

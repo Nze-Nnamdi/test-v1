@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useState, useRef, useEffect } from "react"
 
 interface VoicePlayerProps {
@@ -56,16 +54,16 @@ export function VoicePlayer({ audioUrl, duration }: VoicePlayerProps) {
   }
 
   return (
-    <div className="flex items-center space-x-4">
+    <div className="flex items-center space-x-2">
       <button
         type="button"
         onClick={togglePlay}
         aria-label={isPlaying ? "Pause voice note" : "Play voice note"}
-        className="w-12 h-12 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-150"
+        className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-150"
       >
         {isPlaying ? (
           <svg
-            className="w-5 h-5 fill-current"
+            className="w-3.5 h-3.5 fill-current"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
           >
@@ -73,7 +71,7 @@ export function VoicePlayer({ audioUrl, duration }: VoicePlayerProps) {
           </svg>
         ) : (
           <svg
-            className="w-5 h-5 fill-current ml-0.5"
+            className="w-3.5 h-3.5 fill-current ml-0.5"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
           >
@@ -82,10 +80,10 @@ export function VoicePlayer({ audioUrl, duration }: VoicePlayerProps) {
         )}
       </button>
       <div className="flex flex-col">
-        <span className="text-sm font-semibold text-gray-900">
+        <span className="text-xs font-semibold text-gray-900">
           {isPlaying ? formatTime(currentTime) : formatTime(duration)}
         </span>
-        <span className="text-xs text-gray-400">Duration</span>
+        <span className="text-[10px] text-gray-400">Duration</span>
       </div>
     </div>
   )

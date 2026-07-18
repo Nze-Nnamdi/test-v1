@@ -13,6 +13,7 @@ export function VoiceRecorder({ onRecordComplete }: VoiceRecorderProps) {
   const [state, setState] = useState<"idle" | "recording" | "review" | "submitting" | "success" | "error">("idle")
   const [countdown, setCountdown] = useState(MAX_RECORDING_SECONDS)
   const [errorMsg, setErrorMsg] = useState("")
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -20,8 +21,15 @@ export function VoiceRecorder({ onRecordComplete }: VoiceRecorderProps) {
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const durationRef = useRef<number>(0)
 
+  const previewUrlRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    previewUrlRef.current = previewUrl
+  }, [previewUrl])
+
   useEffect(() => {
     return () => {
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
       cleanup()
     }
   }, [])
@@ -74,6 +82,11 @@ export function VoiceRecorder({ onRecordComplete }: VoiceRecorderProps) {
       }
 
       mediaRecorder.onstop = () => {
+        if (chunksRef.current.length > 0) {
+          const mimeType = mediaRecorderRef.current?.mimeType || "audio/webm"
+          const blob = new Blob(chunksRef.current, { type: mimeType })
+          setPreviewUrl(URL.createObjectURL(blob))
+        }
         setState("review")
       }
 
@@ -158,6 +171,10 @@ export function VoiceRecorder({ onRecordComplete }: VoiceRecorderProps) {
 
   const resetRecording = () => {
     cleanup()
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+      setPreviewUrl(null)
+    }
     setState("idle")
     setCountdown(MAX_RECORDING_SECONDS)
     setErrorMsg("")
@@ -169,6 +186,7 @@ export function VoiceRecorder({ onRecordComplete }: VoiceRecorderProps) {
     <VoiceRecorderControls
       state={state}
       countdown={countdown}
+      previewUrl={previewUrl}
       onStart={startRecording}
       onStop={stopRecording}
       onSubmit={submitRecording}

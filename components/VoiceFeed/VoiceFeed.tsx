@@ -1,8 +1,7 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect } from "react"
 import { VoiceFeedItem } from "./VoiceFeedItem"
-import { getBrowserSupabase } from "@/lib/supabase"
 
 interface VoiceNote {
   id: string
@@ -18,14 +17,16 @@ export function VoiceFeed({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
   const [error, setError] = useState<string | null>(null)
   const [nextCursor, setNextCursor] = useState<string | null>(null)
 
-  const fetchVoices = async (cursor?: string) => {
+  const fetchVoices = async (cursor?: string, silent = false) => {
     try {
-      if (cursor) {
-        setLoadingMore(true)
-      } else {
-        setLoading(true)
+      if (!silent) {
+        if (cursor) {
+          setLoadingMore(true)
+        } else {
+          setLoading(true)
+        }
       }
-      setError(null)
+      if (!silent) setError(null)
 
       const url = new URL("/api/voices", window.location.origin)
       if (cursor) {
@@ -46,12 +47,16 @@ export function VoiceFeed({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
       }
       setNextCursor(data.nextCursor)
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to fetch voices"
-      setError(message)
+      if (!silent) {
+        const message = err instanceof Error ? err.message : "Failed to fetch voices"
+        setError(message)
+      }
       console.error(err)
     } finally {
-      setLoading(false)
-      setLoadingMore(false)
+      if (!silent) {
+        setLoading(false)
+        setLoadingMore(false)
+      }
     }
   }
 
@@ -60,27 +65,11 @@ export function VoiceFeed({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
   }, [refreshTrigger])
 
   useEffect(() => {
-    let supabase: ReturnType<typeof getBrowserSupabase> | null = null
-    try {
-      supabase = getBrowserSupabase()
-    } catch {
-      return
-    }
+    const interval = setInterval(() => {
+      fetchVoices(undefined, true)
+    }, 5000)
 
-    const channel = supabase
-      .channel("voice-notes")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "VoiceNote" },
-        (payload) => {
-          const newNote = payload.new as VoiceNote
-          setNotes((prev) => [newNote, ...prev])
-          setLoading(false)
-        }
-      )
-      .subscribe()
-
-    return () => { supabase.removeChannel(channel) }
+    return () => clearInterval(interval)
   }, [])
 
   if (loading) {

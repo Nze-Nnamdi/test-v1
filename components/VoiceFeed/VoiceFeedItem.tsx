@@ -13,9 +13,10 @@ interface VoiceFeedItemProps {
     createdAt: string
   }
   showPlayCount: boolean
+  userSessionId: string
 }
 
-export function VoiceFeedItem({ note, showPlayCount }: VoiceFeedItemProps) {
+export function VoiceFeedItem({ note, showPlayCount, userSessionId }: VoiceFeedItemProps) {
   const [formattedDate, setFormattedDate] = useState<string>("")
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export function VoiceFeedItem({ note, showPlayCount }: VoiceFeedItemProps) {
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-1.5 shadow-sm flex items-center justify-between">
-      <VoicePlayer audioUrl={note.audioUrl} duration={note.duration} noteId={note.id} playCount={note.playCount} showPlayCount={showPlayCount} />
+      <VoicePlayer audioUrl={note.audioUrl} duration={note.duration} noteId={note.id} playCount={note.playCount} showPlayCount={showPlayCount} isOwner={note.sessionId === userSessionId} />
       <span className="text-[10px] text-gray-400 font-medium">
         {formattedDate || "just now"}
       </span>

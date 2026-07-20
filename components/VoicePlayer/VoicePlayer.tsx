@@ -6,9 +6,10 @@ interface VoicePlayerProps {
   noteId: string
   playCount: number
   showPlayCount: boolean
+  isOwner: boolean
 }
 
-export function VoicePlayer({ audioUrl, duration, noteId, playCount, showPlayCount }: VoicePlayerProps) {
+export function VoicePlayer({ audioUrl, duration, noteId, playCount, showPlayCount, isOwner }: VoicePlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [count, setCount] = useState(playCount)
@@ -50,7 +51,7 @@ export function VoicePlayer({ audioUrl, duration, noteId, playCount, showPlayCou
       })
       setIsPlaying(true)
 
-      if (!hasTrackedPlay.current) {
+      if (!hasTrackedPlay.current && !isOwner) {
         hasTrackedPlay.current = true
         fetch("/api/voices", {
           method: "PATCH",

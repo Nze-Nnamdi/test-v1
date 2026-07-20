@@ -177,7 +177,7 @@ export function VoiceFeed({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
       </div>
       <div className="space-y-2">
         {notes.map((note) => (
-          <VoiceFeedItem key={note.id} note={note} showPlayCount={myNotesOnly} />
+          <VoiceFeedItem key={note.id} note={note} showPlayCount={myNotesOnly} userSessionId={sessionId} />
         ))}
       </div>
 

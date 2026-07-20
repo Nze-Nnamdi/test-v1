@@ -23,6 +23,7 @@ function mapNote(row: any) {
     audioUrl: row.audiourl ?? row.audioUrl,
     format: row.format,
     duration: row.duration,
+    sessionId: row.sessionid ?? row.sessionId,
     createdAt: row.createdat ?? row.createdAt,
   }
 }
@@ -32,11 +33,11 @@ export async function getPrisma() {
 
   prismaInstance = {
     voiceNote: {
-      async create({ data }: { data: { audioUrl: string; format: string; duration: number } }) {
+      async create({ data }: { data: { audioUrl: string; format: string; duration: number; sessionId?: string } }) {
         const p = getPool()
         const result = await p.query(
-          `INSERT INTO "VoiceNote" ("audioUrl", format, duration) VALUES ($1, $2, $3) RETURNING *`,
-          [data.audioUrl, data.format, data.duration]
+          `INSERT INTO "VoiceNote" ("audioUrl", format, duration, "sessionId") VALUES ($1, $2, $3, $4) RETURNING *`,
+          [data.audioUrl, data.format, data.duration, data.sessionId ?? null]
         )
         return mapNote(result.rows[0])
       },
@@ -61,26 +62,44 @@ export async function getPrisma() {
         orderBy,
         cursor,
         skip,
+        where,
       }: {
         take?: number
         orderBy?: Record<string, "asc" | "desc">
         cursor?: { createdAt?: Date }
         skip?: number
+        where?: { sessionId?: string }
       }) {
         const p = getPool()
         const orderCol = Object.keys(orderBy || { createdAt: "desc" })[0] || "createdAt"
         const orderDir = (orderBy as any)?.[orderCol] || "desc"
 
-        let result
+        const conditions: string[] = []
+        const params: any[] = []
+
+        if (where?.sessionId) {
+          conditions.push(`"sessionId" = $${params.length + 1}`)
+          params.push(where.sessionId)
+        }
+
         if (cursor?.createdAt) {
           const operator = orderDir === "desc" ? "<=" : ">="
+          conditions.push(`"${orderCol}" ${operator} $${params.length + 1}`)
+          params.push(cursor.createdAt.toISOString())
+        }
+
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : ""
+        const offsetClause = skip ? `OFFSET ${skip}` : ""
+
+        let result
+        if (cursor?.createdAt || where?.sessionId) {
           result = await p.query(
-            `SELECT * FROM "VoiceNote" WHERE "${orderCol}" ${operator} $1 ORDER BY "${orderCol}" ${orderDir} LIMIT $2 OFFSET ${skip || 0}`,
-            [cursor.createdAt.toISOString(), take]
+            `SELECT * FROM "VoiceNote" ${whereClause} ORDER BY "${orderCol}" ${orderDir} LIMIT $${params.length + 1} ${offsetClause}`,
+            [...params, take]
           )
         } else {
           result = await p.query(
-            `SELECT * FROM "VoiceNote" ORDER BY "${orderCol}" ${orderDir} LIMIT $1`,
+            `SELECT * FROM "VoiceNote" ${whereClause} ORDER BY "${orderCol}" ${orderDir} LIMIT $1`,
             [take]
           )
         }

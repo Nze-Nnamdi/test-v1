@@ -1,7 +1,8 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { VoiceFeedItem } from "./VoiceFeedItem"
+import { useSessionId } from "@/hooks/useSessionId"
 
 interface VoiceNote {
   id: string
@@ -11,13 +12,15 @@ interface VoiceNote {
 }
 
 export function VoiceFeed({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
+  const sessionId = useSessionId()
   const [notes, setNotes] = useState<VoiceNote[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const [myNotesOnly, setMyNotesOnly] = useState(false)
 
-  const fetchVoices = async (cursor?: string, silent = false) => {
+  const fetchVoices = useCallback(async (cursor?: string, silent = false) => {
     try {
       if (!silent) {
         if (cursor) {
@@ -33,6 +36,10 @@ export function VoiceFeed({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
         url.searchParams.set("cursor", cursor)
       }
       url.searchParams.set("limit", "3")
+
+      if (myNotesOnly && sessionId) {
+        url.searchParams.set("sessionId", sessionId)
+      }
 
       const res = await fetch(url.toString())
       const data = await res.json()
@@ -58,11 +65,11 @@ export function VoiceFeed({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
         setLoadingMore(false)
       }
     }
-  }
+  }, [myNotesOnly, sessionId])
 
   useEffect(() => {
     fetchVoices()
-  }, [refreshTrigger])
+  }, [refreshTrigger, fetchVoices])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -70,7 +77,7 @@ export function VoiceFeed({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
     }, 5000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [fetchVoices])
 
   if (loading) {
     return (
@@ -102,22 +109,70 @@ export function VoiceFeed({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
 
   if (notes.length === 0) {
     return (
-      <div className="text-center py-8 bg-white border border-gray-200 rounded-lg">
-        <span className="text-2xl" role="img" aria-label="Microphone">
-          ??
-        </span>
-        <h3 className="mt-2 text-sm font-semibold text-gray-900">
-          No voice notes yet
-        </h3>
-        <p className="mt-0.5 text-xs text-gray-500">
-          Be the first to record
-        </p>
+      <div className="space-y-3">
+        <div className="flex items-center justify-end">
+          <button
+            type="button"
+            onClick={() => setMyNotesOnly((prev) => !prev)}
+            aria-label={myNotesOnly ? "Show all voice notes" : "Show only my voice notes"}
+            className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${
+              myNotesOnly
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+            <span>{myNotesOnly ? "My Notes" : "All Voices"}</span>
+          </button>
+        </div>
+        <div className="text-center py-8 bg-white border border-gray-200 rounded-lg">
+          {myNotesOnly ? (
+            <>
+              <span className="text-2xl" role="img" aria-label="Microphone">??</span>
+              <h3 className="mt-2 text-sm font-semibold text-gray-900">
+                No notes yet
+              </h3>
+              <p className="mt-0.5 text-xs text-gray-500">
+                Record your first voice note above
+              </p>
+            </>
+          ) : (
+            <>
+              <span className="text-2xl" role="img" aria-label="Microphone">??</span>
+              <h3 className="mt-2 text-sm font-semibold text-gray-900">
+                No voice notes yet
+              </h3>
+              <p className="mt-0.5 text-xs text-gray-500">
+                Be the first to record
+              </p>
+            </>
+          )}
+        </div>
       </div>
     )
   }
 
   return (
     <div className="space-y-3">
+      <div className="flex items-center justify-end">
+        <button
+          type="button"
+          onClick={() => setMyNotesOnly((prev) => !prev)}
+          aria-label={myNotesOnly ? "Show all voice notes" : "Show only my voice notes"}
+          className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${
+            myNotesOnly
+              ? "bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+          </svg>
+          <span>{myNotesOnly ? "My Notes" : "All Voices"}</span>
+        </button>
+      </div>
       <div className="space-y-2">
         {notes.map((note) => (
           <VoiceFeedItem key={note.id} note={note} />

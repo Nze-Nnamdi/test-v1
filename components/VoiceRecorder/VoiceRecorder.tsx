@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react"
 import { VoiceRecorderControls } from "./VoiceRecorderControls"
+import { useSessionId } from "@/hooks/useSessionId"
 
 const MAX_RECORDING_SECONDS = 60
 
@@ -10,6 +11,7 @@ interface VoiceRecorderProps {
 }
 
 export function VoiceRecorder({ onRecordComplete }: VoiceRecorderProps) {
+  const sessionId = useSessionId()
   const [state, setState] = useState<"idle" | "recording" | "review" | "submitting" | "success" | "error">("idle")
   const [countdown, setCountdown] = useState(MAX_RECORDING_SECONDS)
   const [errorMsg, setErrorMsg] = useState("")
@@ -144,6 +146,7 @@ export function VoiceRecorder({ onRecordComplete }: VoiceRecorderProps) {
       formData.append("audio", audioBlob, `recording.${extension}`)
       const durationVal = Math.max(1, Math.round(durationRef.current))
       formData.append("duration", durationVal.toString())
+      if (sessionId) formData.append("sessionId", sessionId)
 
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 15000)

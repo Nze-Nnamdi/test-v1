@@ -51,6 +51,7 @@ export async function POST(request: Request) {
     const formData = await request.formData()
     const audio = formData.get("audio") as File | null
     const duration = parseInt(formData.get("duration") as string, 10)
+    const sessionId = formData.get("sessionId") as string | null
 
     if (!audio) {
       return NextResponse.json(
@@ -123,6 +124,7 @@ export async function POST(request: Request) {
         audioUrl: urlData.publicUrl,
         format: extension,
         duration,
+        sessionId: sessionId || undefined,
       },
     })
 
@@ -216,6 +218,7 @@ export async function GET(request: Request) {
       MAX_LIMIT
     )
     const cursor = searchParams.get("cursor")
+    const sessionId = searchParams.get("sessionId")
 
     const prisma = await getPrisma()
     const notes = await prisma.voiceNote.findMany({
@@ -224,6 +227,9 @@ export async function GET(request: Request) {
       ...(cursor && {
         cursor: { createdAt: new Date(cursor) },
         skip: 1,
+      }),
+      ...(sessionId && {
+        where: { sessionId },
       }),
     })
 

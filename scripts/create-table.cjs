@@ -30,11 +30,15 @@ async function main() {
         "audioUrl" TEXT NOT NULL,
         format TEXT NOT NULL,
         duration INTEGER NOT NULL,
+        "sessionId" TEXT,
         "createdAt" TIMESTAMP NOT NULL DEFAULT NOW()
       )
     `)
     await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_voicenote_createdat ON "VoiceNote" ("createdAt")
+    `)
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_voicenote_sessionid ON "VoiceNote" ("sessionId")
     `)
     console.log("Table created successfully")
   } catch (e) {

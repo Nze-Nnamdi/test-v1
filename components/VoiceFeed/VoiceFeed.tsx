@@ -8,6 +8,8 @@ interface VoiceNote {
   id: string
   audioUrl: string
   duration: number
+  playCount: number
+  sessionId: string | null
   createdAt: string
 }
 
@@ -175,7 +177,7 @@ export function VoiceFeed({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
       </div>
       <div className="space-y-2">
         {notes.map((note) => (
-          <VoiceFeedItem key={note.id} note={note} />
+          <VoiceFeedItem key={note.id} note={note} showPlayCount={myNotesOnly} />
         ))}
       </div>
 

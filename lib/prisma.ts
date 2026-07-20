@@ -24,6 +24,7 @@ function mapNote(row: any) {
     format: row.format,
     duration: row.duration,
     sessionId: row.sessionid ?? row.sessionId,
+    playCount: row.playcount ?? row.playCount ?? 0,
     createdAt: row.createdat ?? row.createdAt,
   }
 }
@@ -53,6 +54,14 @@ export async function getPrisma() {
         const p = getPool()
         const result = await p.query(
           `DELETE FROM "VoiceNote" WHERE id = $1 RETURNING *`,
+          [where.id]
+        )
+        return mapNote(result.rows[0])
+      },
+      async incrementPlayCount({ where }: { where: { id: string } }) {
+        const p = getPool()
+        const result = await p.query(
+          `UPDATE "VoiceNote" SET "playCount" = "playCount" + 1 WHERE id = $1 RETURNING *`,
           [where.id]
         )
         return mapNote(result.rows[0])

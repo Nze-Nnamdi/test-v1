@@ -208,6 +208,42 @@ export async function DELETE(request: Request) {
   }
 }
 
+export async function PATCH(request: Request) {
+  const corsHeaders = getCorsHeaders(request)
+
+  try {
+    const { id } = await request.json()
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Missing id" },
+        { status: 400, headers: corsHeaders as Record<string, string> }
+      )
+    }
+
+    const prisma = await getPrisma()
+    const updated = await prisma.voiceNote.incrementPlayCount({ where: { id } })
+
+    if (!updated) {
+      return NextResponse.json(
+        { error: "Voice note not found" },
+        { status: 404, headers: corsHeaders as Record<string, string> }
+      )
+    }
+
+    return NextResponse.json(updated, {
+      headers: corsHeaders as Record<string, string>,
+    })
+  } catch (error) {
+    console.error("PATCH /api/voices error:", error)
+    const message = error instanceof Error ? error.message : "Failed to update play count"
+    return NextResponse.json(
+      { error: message },
+      { status: 500, headers: corsHeaders as Record<string, string> }
+    )
+  }
+}
+
 export async function GET(request: Request) {
   const corsHeaders = getCorsHeaders(request)
 

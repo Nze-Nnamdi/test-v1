@@ -3,11 +3,16 @@ import React, { useState, useRef, useEffect } from "react"
 interface VoicePlayerProps {
   audioUrl: string
   duration: number
+  noteId: string
+  playCount: number
+  showPlayCount: boolean
 }
 
-export function VoicePlayer({ audioUrl, duration }: VoicePlayerProps) {
+export function VoicePlayer({ audioUrl, duration, noteId, playCount, showPlayCount }: VoicePlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
+  const [count, setCount] = useState(playCount)
+  const hasTrackedPlay = useRef(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
@@ -44,6 +49,20 @@ export function VoicePlayer({ audioUrl, duration }: VoicePlayerProps) {
         console.error("Audio playback failed:", err)
       })
       setIsPlaying(true)
+
+      if (!hasTrackedPlay.current) {
+        hasTrackedPlay.current = true
+        fetch("/api/voices", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: noteId }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.playCount !== undefined) setCount(data.playCount)
+          })
+          .catch(() => {})
+      }
     }
   }
 
@@ -83,7 +102,11 @@ export function VoicePlayer({ audioUrl, duration }: VoicePlayerProps) {
         <span className="text-xs font-semibold text-gray-900">
           {isPlaying ? formatTime(currentTime) : formatTime(duration)}
         </span>
-        <span className="text-[10px] text-gray-400">Duration</span>
+        {showPlayCount && count > 0 && (
+          <span className="text-[10px] text-gray-400">
+            {count} {count === 1 ? "play" : "plays"}
+          </span>
+        )}
       </div>
     </div>
   )

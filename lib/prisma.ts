@@ -116,6 +116,24 @@ export async function getPrisma() {
         return result.rows.map(mapNote)
       },
     },
+    report: {
+      async create({ data }: { data: { voiceNoteId: string; sessionId: string; reason?: string } }) {
+        const p = getPool()
+        const result = await p.query(
+          `INSERT INTO "Report" ("voiceNoteId", "sessionId", reason) VALUES ($1, $2, $3) RETURNING *`,
+          [data.voiceNoteId, data.sessionId, data.reason ?? null]
+        )
+        return result.rows[0]
+      },
+      async findUnique(where: { voiceNoteId_sessionId: { voiceNoteId: string; sessionId: string } }) {
+        const p = getPool()
+        const result = await p.query(
+          `SELECT * FROM "Report" WHERE "voiceNoteId" = $1 AND "sessionId" = $2`,
+          [where.voiceNoteId_sessionId.voiceNoteId, where.voiceNoteId_sessionId.sessionId]
+        )
+        return result.rows[0] || null
+      },
+    },
   }
 
   return prismaInstance

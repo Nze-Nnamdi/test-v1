@@ -19,3 +19,14 @@ model VoiceNote {
   @@index([createdAt])
   @@index([sessionId])
 }
+
+model Report {
+  id          String   @id @default(uuid())
+  voiceNoteId String
+  sessionId   String
+  reason      String?
+  createdAt   DateTime @default(now())
+
+  @@unique([voiceNoteId, sessionId])
+  @@index([voiceNoteId])
+}
